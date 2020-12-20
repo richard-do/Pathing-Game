@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Pathing Game - Made using ZIMJS</title>
+
+<!-- Assignment: #2 CANVAS WITH JAVASCRIPT -->
+
+<!-- Welcome to ZIM at http://zimjs.com - Code Interactive Media Pizzazz!             -->
+<!-- ZIM runs on the HTML Canvas powered by JavaScript and CreateJS http://createjs.com -->
+<!-- Founded by Inventor Dan Zen - http://danzen.com - Canadian New Media Award Winner     -->
+<!-- ZIM is free to use. You can donate to help improve ZIM at http://zimjs.com/donate     -->
+
+<script src="https://d309knd7es5f10.cloudfront.net/createjs_1.1_min.js"></script>
+<script src="https://d309knd7es5f10.cloudfront.net/zim_10.3.0.js"></script>
+<!-- use zimjs.com/distill for minified individual functions! -->
+
+<!-- bring in EasyStar for path finding and game module for Board -->
+<script src="https://d309knd7es5f10.cloudfront.net/easystar-0.4.3.min.js"></script>
+<script src="https://d309knd7es5f10.cloudfront.net/game_2.0.js"></script>
+
+<script>
+
+// SCALING OPTIONS
+// scaling can have values as follows with full being the default
+// "fit"    sets canvas and stage to dimensions and scales to fit inside window size
+// "outside"    sets canvas and stage to dimensions and scales to fit outside window size
+// "full"    sets stage to window size with no scaling
+// "tagID"    add canvas to HTML tag of ID - set to dimensions if provided - no scaling
+
+var scaling = "fit"; // this will resize to fit inside the screen dimensions
+var width = 1024;
+var height = 768;
+var color = light;
+var outerColor = darker;
+
+// as of ZIM 5.5.0 you do not need to put zim before ZIM functions and classes
+var frame = new Frame({scaling, width, height, color, outerColor, retina:true});
+frame.on("ready", function() {
+    zog("ready from ZIM Frame"); // logs in console (F12 - choose console)
+
+    var stage = frame.stage;
+    var stageW = frame.width;
+    var stageH = frame.height;
+
+    ZIMONON = true; // set this to true if using ZIMON - like JSON but with any object
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // BOARD
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // initial board setup
+    var board = new Board({
+        backgroundColor:grey,
+        isometric:false,
+        indicatorBorderColor:silver,
+    }).center();
+
+    loop(10, function () {
+        board.addCol();
+        board.addRow();
+    });
+    board.positionBoard(5,5);
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // BOARD ITEMS
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // add a player to the board
+    var player;
+
+    player = new Person(yellow,silver,brown);
+    board.add(player, 4, 7);
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // BOARD INTERACTION
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // add keyboard interaction
+    board.addKeys(player, "arrows");
+    board.addKeys(player, "wasd");
+
+    // randomizes the tiles on the board and sets them all to unvisited
+    function randomizeBoard(board){
+        var tileColors = [red, blue, grey, black];
+        // iterate columns
+        for (var bCol = 0; bCol < board.info.length; bCol ++){
+            var bRowInfo = board.info[0]
+            // iterate rows
+            for (var bRow = 0; bRow < board.info[0].length; bRow++){
+                // randomizes all the tiles and sets them to unvisited
+                board.info[bCol][bRow].color =
+                tileColors[Math.floor(Math.random() * tileColors.length)];
+                board.info[bCol][bRow]["isVisited"] = false;
+            }
+        }
+        // tells the board to update with concurrent information
+        board.update();
+    }
+
+    // allows players to change the board state on spacebar press
+    // will reset all tiles to unvisited
+    document.addEventListener("keydown", e => {
+      if (e.keyCode == 32){
+        randomizeBoard(board);
+        console.log("here");
+        if (timer.time != 0) scorer.score -= 3;
+        stage.update();
+      }
+    });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // TIMER AND SCORER
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //
+    // set a timer to be positioned isometric left
+    var timer = new Timer({
+        time:60,
+        borderColor:dark,
+        isometric:"left"
+    })
+        // resets the game when timer pressed
+        .tap(function () {
+            timer.start(60);
+            timer.backing.color = yellow;
+            scorer.score = 0;
+            randomizeBoard(board);
+        })
+        .loc(75, 231, stage, 0); // .place();
+    timer.on("complete",function () {
+        timer.backing.color = red;
+        timer.color = white;
+        stage.update();
+    });
+
+    var scorer = new Scorer({
+        borderColor:dark,
+        isometric:"right"
+    }).loc(stageW-75, 231, stage, 0); // .place();
+
+    // timer and scorer forced into non isometric view
+    timer.isometric = timer.isometric?false:"left";
+    scorer.isometric = scorer.isometric?false:"right";
+
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // MOVEMENT AND SCORING
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // setting up the scoring system of each color
+    var tileScores = {}
+    tileScores[red] = 4;
+    tileScores[blue] = 2;
+    tileScores[white] = -1;
+    tileScores[grey] = -2;
+    tileScores[black] = -3;
+
+    // on move
+    player.on("moved", function () {
+        // will score while timer is not finished
+        if (timer.time != 0){
+            // get pos of player relative to board
+            playerPos = player.square.split("-");
+            // square gives pos y then x
+            var posColor = board.getColor(playerPos[1], playerPos[0]);
+            // checks if tile has been visited
+            var visited = board.getInfo(playerPos[1], playerPos[0]).isVisited;
+            // calculate score based on color array above
+            // and whether if it has been visited or not
+
+            if (visited == false){
+                board.getInfo(playerPos[1], playerPos[0]).isVisited = true;
+                scorer.score += tileScores[posColor];
+                board.info[playerPos[0]][playerPos[1]].color = white;
+            } else {
+                scorer.score --;
+            }
+        }
+        board.update();
+    });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // HEADER / FOOTER
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    // Title
+    new Label("Pathing Game")
+        .sca(2)
+        .loc(280, 65, stage, 0);
+
+    // issues getting TextArea to work
+    // workaround to display controls and scoring
+    new Label("Movement:\n" +
+              "Arrow Keys or WASD movement\n" +
+              "Space Bar - RESET BOARD\n\n" +
+              "RESET BOARD sets all\n" +
+              "tiles to unvisited.")
+        .sca(.7)
+        .loc(50, 600, stage, 0);
+
+    new Label("Score:\n" +
+              "Red: +4, Blue: +2\n"+
+              "White (Revisited Tile): -1" +
+              "\nBlack: -3, Grey: -2\n"+
+              "Reset Board: -3")
+        .sca(.7)
+        .loc(700, 600, stage, 0);
+
+    new Label("Press the timer to start a new game")
+        .sca(.5)
+        .loc(20, 20, stage, 0);
+
+    // setup the initial game state
+    board.removeArrows();
+    randomizeBoard(board);
+    stage.update(); // this is needed to show any changes
+
+}); // end of ready
+
+</script>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+
+</head>
+
+<body>
+<!-- canvas with id="myCanvas" is made by zim Frame -->
+</body>
+</html>

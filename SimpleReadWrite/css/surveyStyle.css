@@ -1,0 +1,46 @@
+html, body {
+    height: 100%;
+    margin:0px;
+}
+
+h1, footer {
+    text-align:center;
+}
+
+header {
+    background: teal;
+    font-size: 30px;
+    padding: 5px;
+    color:white;
+}
+
+.left{
+    width:40%;
+    height:50%;
+    margin-left: 5%;
+    margin-right: 5%;
+    float:left;
+    background: gold;
+    text-align: center;
+}
+
+.right{
+    width:40%;
+    height:50%;
+    margin-left: 5%;
+    margin-right: 5%;
+    float:left;
+    background: #dd7f2a;
+    text-align: center;
+}
+
+#missingCourse, #noReview, #submissionPrompt{
+    font-family:courier;
+    font-size:20px;
+    display:none;
+}
+#displayInfo, #submissionForm, #submissions, #page{
+    font-family:courier;
+    font-size:15px;
+    display:none;
+}

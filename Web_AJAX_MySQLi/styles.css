@@ -1,0 +1,26 @@
+body {
+    padding:40px;
+    background-color:#ebcb35;
+}
+span {
+    font-family:impact; font-size:100px;
+}
+table {
+    width:600px;
+    padding:8px;
+    background-color: #EFFD5F;
+}
+td, th {
+    background-color:rgba(0,0,0,.2);
+    font-family:verdana;
+    color:white;
+    padding:10px;
+    size:30px;
+    text-align: center;
+}
+th {background-color:rgba(0,0,0,.3);}
+
+table.center {
+  margin-left:auto;
+  margin-right:auto;
+}

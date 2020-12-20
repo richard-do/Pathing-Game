@@ -1,0 +1,251 @@
+
+<!-- Name: Richard Do
+Student No: 991579082
+Assignment: 3/4
+Partners: N/A
+Course: SYST10199 Web Programming
+Instructor: Dan Zen -->
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Course Registration</title>
+        <link rel="stylesheet" type="text/css" href="css/surveyStyle.css">
+        <script>
+            window.addEventListener("DOMContentLoaded", () => {
+                // fields
+                const name = document.getElementById("name");
+                const program = document.getElementById("program");
+                const course = document.getElementById("course");
+                const review = document.getElementById("review");
+
+                // form
+                const displayInfo = document.getElementById("displayInfo");
+                const missingCourse = document.getElementById("missingCourse");
+                const submissionForm = document.getElementById("submissionForm");
+                const submissionPrompt = document.getElementById("submissionPrompt");;
+                const page = document.getElementById("page");
+
+                // buttons
+                const submit = document.getElementById("submit");
+                const prelim = document.getElementById("prelim");
+                const back = document.getElementById("back");
+
+                // some issues putting class + addElementListener,
+                // two separate buttons for now
+                const previous = document.getElementById("previous");
+                const next = document.getElementById("next");
+
+                // tracks review page user is on
+                var pageNo = 0;
+
+                // clears on loading/reloading
+                clear();
+
+                // adjusts right panel according to review
+                function displayPage(pageNum){
+                    // know it exists based on the load button
+                    var tmp = (JSON.parse(localStorage.array))[pageNum];
+                    var len = JSON.parse(localStorage.array).length;
+
+                    // page.style.display="inline-block";
+                    page.innerHTML= "Page: " + (pageNum+1) + "/" + len + "<br/><br/>" +
+                                    "Name: " + tmp["name"] + "<br/>" +
+                                    "Program: " + tmp["program"] +"<br/>" +
+                                    "Course: " + tmp["course"] + "<br/><br/>" +
+                                    tmp["review"];
+                }
+
+                // clears all fields, sets back to default
+                function clear(){
+                    name.value="";
+                    program.value="Math";
+                    course.value="";
+                    review.value="";
+                }
+
+                // handles the initial form asking for program and pen name
+                prelim.addEventListener("click", e => {
+                    // hide previous submission prompt
+                    submissionPrompt.style.display="none";
+                    if (name.value == "") name.value = "Anonymous";
+                    // setup display for course information
+                    setup.style.display="none";
+                    missingCourse.style="none";
+                    // displays pen name and course chosen
+                    displayInfo.innerHTML="Welcome! " + name.value +
+                    " you have chosen program: " + program.value + ".";
+                    displayInfo.style.display="inline-block";
+                    submissionForm.style.display="inline-block";
+
+                });
+
+                // returns user from review submission back
+                // to pen name and program entry
+                back.addEventListener("click", e =>{
+                     setup.style.display="inline-block";
+                     displayInfo.style.display="none";
+                     submissionForm.style.display="none";
+                });
+
+                // stores review as object and add to localStorage.array
+                submit.addEventListener("click", e => {
+                    // check for unempty value for course
+                    if (course.value == ""){
+                        missingCourse.style.display="inline-block";
+                    } else {
+                        if (localStorage){
+                            // generate object to put in localStorage
+                            var obj = {
+                                name: name.value,
+                                program: program.value,
+                                course: course.value,
+                                review: review.value.trim()
+                            };
+                            // hide relevant information
+                            setup.style.display="inline-block";
+                            displayInfo.style.display="none";
+                            submissionForm.style.display="none";
+                            // check if array exists and act accordingly
+                            if (localStorage.array){
+                                var tmp = JSON.parse(localStorage.array);
+                                // max 5 reviews stored
+                                if (tmp.length >= 5){
+                                    tmp.shift();
+                                }
+                                tmp.push(obj);
+                                // store back in array
+                                localStorage.array = JSON.stringify(tmp);
+
+                                // *refreshes content by resetting
+                                displayPage(0);
+
+                            } else {
+                                // generates array and stores
+                                localStorage.array = JSON.stringify([obj]);
+                            }
+                            // generate successful storage prompt
+                            submissionPrompt.style.display="inline-block";
+                        } else {
+                            console.log("no localstorage?");
+                        }
+
+                        clear();
+                    }
+
+                });
+
+                // checks to see if localStorage exists and loads content
+                load.addEventListener("click", e=>{
+                    // tell user no reviews exist
+                    if (!localStorage.array){
+                        document.getElementById("noReview").style.display="inline-block";
+                    } else {
+                        // hide prompt and display submissions page
+                        document.getElementById("loadPrompt").style.display="none";
+                        document.getElementById("submissions").style.display="inline-block";
+                        // display page and page number
+                        page.style.display="inline-block";
+                        displayPage(0);
+                    }
+                });
+
+                // handles previous button on reviews
+                previous.addEventListener("click", e => {
+                    var len = JSON.parse(localStorage.array).length;
+                    // adjust pageNo
+                    pageNo--;
+
+                    // make reviews wrap around
+                    if (pageNo == -1){
+                        pageNo = len-1;
+                    }
+
+                    displayPage(pageNo);
+                });
+
+                // handles next button on reviews
+                next.addEventListener("click", e =>{
+                    var len = JSON.parse(localStorage.array).length;
+                    pageNo ++;
+
+                    // make reviews wrap around
+                    if (pageNo == len){
+                        pageNo = 0;
+                    }
+
+                    displayPage(pageNo);
+                });
+            });
+        </script>
+
+    </head>
+    <body>
+        <header>
+        <h1>Anonymous Course Reviews</h1>
+        </header>
+        <hr>
+
+        <div class="left">
+            <div id="setup">
+                Enter your pen name and program to get started.
+                <br><br>
+                <input type="text" id="name" placeholder="Enter pen name here">
+                <br><br>
+                <select id="program">
+                    <option>Math</option>
+                    <option>Science</option>
+                    <option>History</option>
+                    <option>Biology</option>
+                    <option>Physics</option>
+                    <option>English</option>
+                </select>
+            <br><br>
+            <input type="submit" id="prelim" value="submit">
+            <br><br>
+            </div>
+
+            <div id="displayInfo">Placeholder</div>
+            <br><br>
+            <div id="submissionForm">
+                <input type="text" id="course" placeholder="Enter course here">
+                <br><br>
+                <textarea rows="8" cols="40" id="review" placeholder="Enter review here">
+                </textarea>
+                <br><br>
+                <input type="submit" id="submit" value="submit">
+                <input type="submit" id="back" value="back">
+                <br><br>
+                <div id="missingCourse">
+                    You're currently missing the course!
+                    <br>
+                    What could it be? I need to know!
+                </div>
+            </div>
+            <div id="submissionPrompt"> Thanks for the submission! </div>
+        </div>
+
+        <div class="right">
+            <div id="loadPrompt">
+                Review some previous reviews
+                <br><br>
+                <input type="submit" id="load" value="load">
+                <br><br>
+                <div id="noReview"> Oops!  No reviews at the moment. </div>
+            </div>
+            <div id="submissions">
+                <div id="page"></div>
+                <br><br>
+                <input type="submit" id="previous" value="previous">
+                <input type="submit" id="next" value="next">
+            </div>
+        </div>
+
+        <div style="visibility:hidden">fix wrapping issue with invis text</div>
+        <footer>
+            <hr>
+            &copy; Totally legitimate website. 2099.
+        </footer>
+    </body>
+</html>

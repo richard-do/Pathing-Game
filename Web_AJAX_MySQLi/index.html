@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>The Totally Unique Title of this Completely Generic Form</title>
+        <script type="text/javascript">
+            window.addEventListener("DOMContentLoaded", ()=>{
+                const dream = document.getElementById('dream');
+                const type = document.getElementById('type');
+                const submit = document.getElementById('submit');
+                const message = document.getElementById('message');
+                submit.addEventListener("click", (e) => {
+                    if (dream.value == "") {
+                        message.innerHTML = "PLEASE ENTER MESSAGE!";
+                        message.style.display = "block";
+                        e.preventDefault();
+                        document.addEventListener("mousedown", pop);
+                        function pop(e) {
+                            message.style.display = "none";
+                            document.removeEventListener("mousedown", pop);
+                        };
+                    }
+                });
+            });
+        </script>
+        <style media="screen">
+        body {
+            padding: 20px;
+            background-color:#E0FFFF;
+        }
+        #form {
+            text-align:center;
+        }
+        #submit {
+            border-radius:20px;
+            background-color:purple;
+            color:white;
+            width=100;
+            padding:10px 20px;
+        }
+
+        #submit:hover{
+            opacity:0.7;
+        }
+        </style>
+    </head>
+    <body>
+        <div id="form">
+            <h2>Completely unique database.  Yep.</h2>
+            <form action="dreams.php" id="form" method="post">
+            <textarea id="dream" name="dream" rows="8" cols="80"></textarea>
+            <br><br>
+            <select id="type" name="type">
+                <option>scary</option>
+                <option>action</option>
+                <option>sweet</option>
+            </select>
+            <br><br>
+            <input type="submit" name="submit" id="submit" value="SUBMIT">
+        </div>
+    </body>
+</html>
